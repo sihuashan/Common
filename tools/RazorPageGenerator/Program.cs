@@ -8,21 +8,16 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 
-namespace PageGenerator
+namespace RazorPageGenerator
 {
     public class Program
     {
-        private const int NumArgs = 1;
-
-        public static void Main(string[] args)
+        public static void Main()
         {
-            if (args.Length != NumArgs)
-            {
-                throw new ArgumentException(string.Format("Requires {0} argument (Project Directory), {1} given", NumArgs, args.Length));
-            }
-            var diagnosticsDir = args[0];
+            var targetProjectDirectory = Directory.GetCurrentDirectory();
+            var rootNamespace = (new DirectoryInfo(targetProjectDirectory)).Name;
 
-            var viewDirectories = Directory.EnumerateDirectories(diagnosticsDir, "Views", SearchOption.AllDirectories);
+            var viewDirectories = Directory.EnumerateDirectories(targetProjectDirectory, "Views", SearchOption.AllDirectories);
 
             var fileCount = 0;
             foreach (var viewDir in viewDirectories)
@@ -41,7 +36,6 @@ namespace PageGenerator
                 foreach (var fileName in cshtmlFiles)
                 {
                     Console.WriteLine("    Generating code file for view {0}...", Path.GetFileName(fileName));
-                    var rootNamespace = Path.GetDirectoryName(diagnosticsDir);
                     GenerateCodeFile(fileName, $"{rootNamespace}.Views");
                     Console.WriteLine("      Done!");
                     fileCount++;
@@ -60,7 +54,7 @@ namespace PageGenerator
             var fileNameNoExtension = Path.GetFileNameWithoutExtension(fileName);
             var codeLang = new CSharpRazorCodeLanguage();
             var host = new RazorEngineHost(codeLang);
-            host.DefaultBaseClass = "Microsoft.AspNetCore.DiagnosticsViewPage.Views.BaseView";
+            host.DefaultBaseClass = "Microsoft.Extensions.RazorViewPages.Views.BaseView";
             host.GeneratedClassContext = new GeneratedClassContext(
                 executeMethodName: GeneratedClassContext.DefaultExecuteMethodName,
                 writeMethodName: GeneratedClassContext.DefaultWriteMethodName,
